@@ -57,6 +57,11 @@ Reemplazar `index.html` y **subir el número de versión en `sw.js`** (`const CA
 'inventario-ia-v1'` → `v2`). Sin ese cambio, los dispositivos que ya la instalaron seguirán
 abriendo la versión guardada.
 
+## Versión Android
+
+Para empaquetarla como app instalable de Android (APK/AAB) ver [ANDROID.md](ANDROID.md).
+Los archivos `android/twa-manifest.json` y `.github/workflows/android-apk.yml` ya están listos.
+
 ## Archivos
 
 | Archivo | Para qué |

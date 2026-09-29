@@ -1,0 +1,40 @@
+{
+  "packageId": "io.github.kurtbrinze.inventariopana",
+  "host": "kurtbrinze.github.io",
+  "name": "Inventario a Cálculo de Producción",
+  "launcherName": "Inventario IA",
+  "display": "standalone",
+  "orientation": "any",
+  "themeColor": "#0053E2",
+  "themeColorDark": "#0E1626",
+  "navigationColor": "#0053E2",
+  "navigationColorDark": "#0E1626",
+  "navigationDividerColor": "#0053E2",
+  "navigationDividerColorDark": "#0E1626",
+  "backgroundColor": "#EEF2F8",
+  "enableNotifications": false,
+  "startUrl": "/Inventario_Pana/",
+  "webManifestUrl": "https://kurtbrinze.github.io/Inventario_Pana/manifest.webmanifest",
+  "fullScopeUrl": "https://kurtbrinze.github.io/Inventario_Pana/",
+  "iconUrl": "https://kurtbrinze.github.io/Inventario_Pana/icon-512.png",
+  "maskableIconUrl": "https://kurtbrinze.github.io/Inventario_Pana/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "inventario"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 23,
+  "fingerprints": []
+}
