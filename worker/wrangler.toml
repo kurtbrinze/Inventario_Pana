@@ -1,0 +1,13 @@
+name = "inventario-pana-ocr"
+main = "worker.js"
+compatibility_date = "2026-01-15"
+
+[vars]
+# Orígenes autorizados a llamar este worker, separados por coma.
+ALLOWED_ORIGINS = "https://kurtbrinze.github.io"
+# Modelo de visión. claude-opus-5 es el más preciso con letra manuscrita.
+# claude-sonnet-5-5 cuesta menos; cámbialo solo si el gasto lo amerita.
+MODEL = "claude-opus-5"
+
+# La llave NO va aquí. Se carga aparte con:
+#   npx wrangler secret put ANTHROPIC_API_KEY
