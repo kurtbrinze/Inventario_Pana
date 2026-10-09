@@ -1,4 +1,8 @@
-# Lector de fotos (Cloudflare Worker)
+# Lector de fotos (Cloudflare Workers)
+
+> Este es el camino que usa la terminal. Si prefieres no usarla, mira
+> [LECTOR.md](LECTOR.md): se puede dejar la llave en el dispositivo, o desplegar en Vercel
+> solo con clics.
 
 La app no habla con la API de Anthropic directamente: manda la foto a un worker tuyo, y ese
 worker guarda la llave. **La llave nunca llega al navegador ni queda en la tablet.**

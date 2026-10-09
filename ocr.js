@@ -31,10 +31,55 @@
   };
   const fmt = (n) => (n == null ? '' : Number(n).toLocaleString('es-GT'));
 
-  // ---------- ajustes: dirección del worker ----------
-  const LS = 'inventario_ia_worker_url';
-  const getUrl = () => { try { return localStorage.getItem(LS) || ''; } catch (_) { return ''; } };
-  const setUrl = (v) => { try { localStorage.setItem(LS, v); } catch (_) {} };
+  // ---------- ajustes ----------
+  const cfgGet = (k, d = '') => { try { return localStorage.getItem('inventario_ia_' + k) ?? d; } catch (_) { return d; } };
+  const cfgSet = (k, v) => { try { localStorage.setItem('inventario_ia_' + k, v); } catch (_) {} };
+  const modo = () => cfgGet('modo', '');
+  const MODELO_DEF = 'claude-opus-5';
+
+  // ---------- instrucciones para el lector ----------
+  const SYSTEM = 'Eres un transcriptor de hojas de inventario de panadería. Tu única tarea es copiar números manuscritos con exactitud literal. Un número mal copiado hace que la panadería produzca de más o de menos, así que ante la duda marcas la clave como dudosa en lugar de adivinar.';
+
+  function userPrompt() {
+    return `Esta foto es una hoja "STOCK DE PRODUCTO TERMINADO" con dos tablas lado a lado.
+
+IZQUIERDA (PAN BLANCO), filas en este orden exacto:
+${PAN_BLANCO.join(', ')}
+
+DERECHA (PASTEL Y MASAS DULCES), filas en este orden exacto:
+${PASTEL.join(', ')}
+
+Cada tabla tiene tres columnas: CLAVE (impresa), DETALLE / CONTEO (sumas a mano) y TOTAL.
+
+Reglas, en orden de importancia:
+
+1. Copia ÚNICAMENTE la columna TOTAL, la de más a la derecha de cada tabla. IGNORA por completo la columna DETALLE / CONTEO: sus sumas no van al resultado.
+2. Si la celda TOTAL de una clave está vacía, su valor es null. No la rellenes con el detalle ni con el total de otra fila, aunque el detalle tenga un número.
+3. La letra se escribe un poco más abajo de la línea impresa. Asigna cada TOTAL a la clave cuya fila lo contiene, siguiendo el orden de arriba hacia abajo. Verifica que no se te corra una fila: cuenta las filas desde la primera clave.
+4. Un número tachado no cuenta; usa el que lo corrige, y si no hay corrección pon null.
+5. No calcules nada. No sumes, no multipliques, no corrijas lo que parezca inconsistente. Copia lo escrito.
+6. Si un dígito no se distingue con seguridad, pon tu mejor lectura y agrega la clave a "dudosas".
+
+Lee también la fecha escrita arriba a la derecha junto a "FECHA:" y devuélvela como AAAA-MM-DD. Está en formato DD/MM/AA.
+
+Responde SOLO con un objeto JSON, sin texto antes ni después, con esta forma:
+
+{"fecha":"AAAA-MM-DD","pan_blanco":{"CLAVE":numero_o_null},"pastel":{"CLAVE":numero_o_null},"dudosas":["CLAVE"]}
+
+Incluye TODAS las claves de ambas listas, en el mismo orden, aunque su valor sea null.`;
+  }
+
+  /* Saca el objeto JSON aunque venga envuelto en ``` o con texto alrededor. */
+  function parseJson(texto) {
+    const fence = /```(?:json)?\s*([\s\S]*?)```/i.exec(texto);
+    for (const c of [fence && fence[1], texto]) {
+      if (!c) continue;
+      const a = c.indexOf('{'), b = c.lastIndexOf('}');
+      if (a < 0 || b <= a) continue;
+      try { return JSON.parse(c.slice(a, b + 1)); } catch (_) {}
+    }
+    return null;
+  }
 
   // ---------- imagen ----------
   /* Reduce la foto antes de enviarla: la letra sigue legible y el envío no se cae
@@ -195,21 +240,74 @@
     } finally { window.appBusy(false); }
   }
 
+  /* Modo servidor: la llave vive en el servidor, la app solo manda la foto. */
+  async function viaServidor() {
+    const url = cfgGet('url').trim();
+    if (!url) throw new Error('Falta la dirección del lector. Ábrela en Ajustes.');
+    const res = await fetch(url.replace(/\/+$/, ''), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: st.b64, media_type: st.mime }),
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((data && data.error) || `El lector respondió ${res.status}.`);
+    return data;
+  }
+
+  /* Modo llave: la app llama a la API directamente con la llave de este dispositivo. */
+  async function viaLlave() {
+    const key = cfgGet('key').trim();
+    if (!key) throw new Error('Falta la llave. Pégala en Ajustes.');
+    let res;
+    try {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: cfgGet('modelo', MODELO_DEF),
+          max_tokens: 4096,
+          temperature: 0,
+          system: SYSTEM,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: st.mime, data: st.b64 } },
+              { type: 'text', text: userPrompt() },
+            ],
+          }],
+        }),
+      });
+    } catch (err) {
+      throw new Error('No se pudo contactar a la API desde el navegador. Revisa la señal; si el problema sigue, usa el modo servidor. (' + err.message + ')');
+    }
+    const crudo = await res.text();
+    if (!res.ok) {
+      let detalle = crudo.slice(0, 300);
+      try { detalle = JSON.parse(crudo).error?.message || detalle; } catch (_) {}
+      if (res.status === 401) detalle = 'La llave no es válida o fue revocada.';
+      if (res.status === 429) detalle = 'Demasiadas peticiones o sin saldo. Revisa tu cuenta.';
+      throw new Error(`La API respondió ${res.status}: ${detalle}`);
+    }
+    const payload = JSON.parse(crudo);
+    const texto = (payload.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('\n');
+    const data = parseJson(texto);
+    if (!data) throw new Error('El lector no devolvió datos legibles. Repite la foto con la hoja completa y plana.');
+    return data;
+  }
+
   async function leer() {
-    const url = getUrl().trim();
-    if (!url) { window.appSay('Falta la dirección del lector. Ábrela en Ajustes.', 'err'); $('#ocrCfg').open = true; return; }
     if (!st.b64) return;
+    if (!modo()) { window.appSay('Primero configura el lector en Ajustes.', 'err'); $('#ocrCfg').open = true; return; }
     window.appBusy(true, 'Leyendo la foto…');
     try {
-      const res = await fetch(url.replace(/\/+$/, ''), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image_base64: st.b64, media_type: st.mime }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error((data && data.error) || `El lector respondió ${res.status}.`);
-      st.fecha = data.fecha || null;
-      st.dudosas = new Set(data.dudosas || []);
+      const data = modo() === 'llave' ? await viaLlave() : await viaServidor();
+      st.fecha = (data.fecha && /^\d{4}-\d{2}-\d{2}$/.test(data.fecha)) ? data.fecha : null;
+      st.dudosas = new Set((data.dudosas || []).map(String));
       HOJAS.forEach((h) => {
         const src = data[h.key] || {};
         const dst = {};
@@ -279,10 +377,53 @@
   }
 
   // ---------- eventos ----------
+  function pintarCfg() {
+    const m = modo();
+    $('#modoLlave').checked = m === 'llave';
+    $('#modoServidor').checked = m === 'servidor';
+    $('#camposLlave').hidden = m !== 'llave';
+    $('#camposServidor').hidden = m !== 'servidor';
+    $('#cfgEstado').textContent = m === 'llave'
+      ? (cfgGet('key') ? 'Listo: llave guardada en este dispositivo.' : 'Falta pegar la llave.')
+      : m === 'servidor'
+        ? (cfgGet('url') ? 'Listo: usando ' + cfgGet('url') : 'Falta la dirección del lector.')
+        : 'Sin configurar.';
+  }
+
+  /* Si la app se sirve desde un sitio que ya trae el lector incluido
+     (por ejemplo un despliegue en Vercel), lo usa sin pedir nada. */
+  async function autodetectar() {
+    if (modo()) return;
+    try {
+      const r = await fetch('./api/extract', { method: 'GET' });
+      if (!r.ok) return;
+      const j = await r.json();
+      if (j && j.ok) {
+        const u = new URL('./api/extract', location.href).href;
+        cfgSet('modo', 'servidor'); cfgSet('url', u);
+        $('#urlIn').value = u;
+        pintarCfg();
+        window.appSay('Lector detectado en este mismo sitio. No hay nada que configurar.');
+      }
+    } catch (_) { /* no hay lector aquí, se queda sin configurar */ }
+  }
+
   function init() {
-    $('#urlIn').value = getUrl();
-    $('#urlIn').addEventListener('change', (e) => { setUrl(e.target.value.trim()); window.appSay('Dirección guardada en este dispositivo.'); });
-    if (!getUrl()) $('#ocrCfg').open = true;
+    $('#urlIn').value = cfgGet('url');
+    $('#keyIn').value = cfgGet('key');
+    $('#modeloIn').value = cfgGet('modelo', MODELO_DEF);
+    pintarCfg();
+    if (!modo()) $('#ocrCfg').open = true;
+
+    $('#modoLlave').addEventListener('change', () => { cfgSet('modo', 'llave'); pintarCfg(); });
+    $('#modoServidor').addEventListener('change', () => { cfgSet('modo', 'servidor'); pintarCfg(); });
+    $('#urlIn').addEventListener('change', (e) => { cfgSet('url', e.target.value.trim()); pintarCfg(); window.appSay('Dirección guardada en este dispositivo.'); });
+    $('#keyIn').addEventListener('change', (e) => { cfgSet('key', e.target.value.trim()); pintarCfg(); window.appSay('Llave guardada en este dispositivo.'); });
+    $('#modeloIn').addEventListener('change', (e) => { cfgSet('modelo', e.target.value.trim() || MODELO_DEF); });
+    $('#borrarKey').addEventListener('click', () => {
+      cfgSet('key', ''); $('#keyIn').value = ''; pintarCfg(); window.appSay('Llave borrada de este dispositivo.');
+    });
+    autodetectar();
 
     $('#camBtn').onclick = () => $('#camIn').click();
     $('#galBtn').onclick = () => $('#galIn').click();

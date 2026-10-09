@@ -8,7 +8,7 @@ App web con dos pasos:
    `Calculo_Produccion_IA.xlsx`.
 
 Los archivos de Excel se procesan en el dispositivo y nunca se suben a ningún lado. Lo único
-que sale es la foto, y solo hacia tu propio worker (ver [WORKER.md](WORKER.md)).
+que sale es la foto, y solo hacia el lector que tú conectes (ver [LECTOR.md](LECTOR.md)).
 
 ## Paso 1: foto → Excel
 
@@ -21,8 +21,9 @@ Solo se lee la columna **TOTAL**. La columna DETALLE/CONTEO se ignora por comple
 Revisa siempre antes de guardar: un número mal leído se convierte en producción de más o de
 menos. De ahí se puede **Guardar Excel** o pasar los datos directo al paso 2.
 
-Necesita la dirección de tu lector, que se configura una vez por dispositivo en **Ajustes del
-lector**. Los pasos para montarlo están en [WORKER.md](WORKER.md).
+La primera vez hay que conectar el lector en **Ajustes del lector**: o pegas tu llave de la API
+en el dispositivo (2 minutos, sin instalar nada), o apuntas a un servidor propio. Los dos
+caminos están en [LECTOR.md](LECTOR.md).
 
 ## Paso 2: Excel → Cálculo
 
@@ -46,8 +47,8 @@ libro quedan intactos.
 Subir el contenido de esta carpeta al repositorio y, en **Settings → Pages**, poner Source =
 *Deploy from a branch*, Branch = `main`, carpeta `/ (root)`.
 
-La carpeta `worker/` no estorba en Pages, pero tampoco se publica desde ahí: se despliega
-aparte con `wrangler` (ver [WORKER.md](WORKER.md)).
+Las carpetas `api/` y `worker/` no estorban en Pages; solo se usan si montas el lector en un
+servidor (ver [LECTOR.md](LECTOR.md)).
 
 ## Instalar en la tablet Android
 
@@ -70,7 +71,9 @@ guardada.
 | `sw.js` | Guarda la app para uso sin señal |
 | `icon-192.png`, `icon-512.png` | Íconos de la app |
 | `ocr.js` | Fuente de la sección de foto (va embebida en `index.html`) |
-| `worker/worker.js` | El lector: guarda la llave y llama a la API |
-| `worker/wrangler.toml` | Ajustes del worker |
-| `WORKER.md` | Cómo desplegar el lector |
+| `api/extract.js` | El lector, para desplegar en Vercel sin terminal |
+| `vercel.json` | Ajustes del despliegue en Vercel |
+| `worker/worker.js` | El mismo lector, versión Cloudflare Workers |
+| `LECTOR.md` | Cómo conectar el lector (los dos caminos) |
+| `WORKER.md` | Camino de Cloudflare, para quien use terminal |
 | `.nojekyll` | Evita el procesamiento Jekyll de GitHub Pages |
