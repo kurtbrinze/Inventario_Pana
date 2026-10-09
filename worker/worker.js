@@ -153,7 +153,6 @@ export default {
         body: JSON.stringify({
           model: env.MODEL || 'claude-opus-5',
           max_tokens: 4096,
-          temperature: 0,
           system: SYSTEM,
           messages: [{
             role: 'user',
