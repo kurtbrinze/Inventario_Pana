@@ -1,6 +1,6 @@
 /* Service worker: guarda la app para que funcione sin internet.
    Sube el número de CACHE cada vez que cambies index.html. */
-const CACHE = 'inventario-ia-v4';
+const CACHE = 'inventario-ia-V.1';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

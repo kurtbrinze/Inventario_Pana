@@ -50,17 +50,24 @@ Subir el contenido de esta carpeta al repositorio y, en **Settings → Pages**, 
 Las carpetas `api/` y `worker/` no estorban en Pages; solo se usan si montas el lector en un
 servidor (ver [LECTOR.md](LECTOR.md)).
 
-## Instalar en la tablet Android
+## Instalar en la tablet o el teléfono
 
-Abrir la dirección en Chrome, menú de tres puntos, **Instalar aplicación** o **Agregar a
-pantalla de inicio**. Queda con ícono propio, a pantalla completa y funciona sin señal, salvo
-la lectura de fotos, que sí necesita internet.
+La app trae un botón **Instalar app** arriba a la derecha. Si el navegador lo permite, abre el
+instalador del sistema; si no, muestra los pasos para ese dispositivo. El botón desaparece solo
+cuando la app ya está instalada.
 
-## Actualizar la app
+## Versión
 
-Reemplazar `index.html` y **subir el número de versión en `sw.js`** (`inventario-ia-v2` →
-`v3`). Sin ese cambio, los dispositivos que ya la instalaron seguirán abriendo la versión
-guardada.
+Arriba a la derecha se ve la versión actual (`V.1`). Al publicar un cambio hay que subirla en
+**dos lugares**, que deben coincidir:
+
+1. `index.html` → `const APP_VERSION = 'V.1';`
+2. `sw.js` → `const CACHE = 'inventario-ia-V.1';`
+
+El número de `sw.js` es el que obliga a los dispositivos ya instalados a tomar la versión nueva.
+Si no cambia, la tablet sigue abriendo la copia guardada aunque el archivo nuevo esté publicado.
+El de `index.html` es el que se ve en pantalla, y sirve para confirmar de un vistazo qué versión
+está corriendo cada equipo.
 
 ## Archivos
 

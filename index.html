@@ -173,6 +173,24 @@ label.opcion input{margin-top:3px;width:20px;height:20px;accent-color:var(--blue
 label.opcion small{display:block;color:var(--muted);font-weight:400;margin-top:2px}
 #camposLlave,#camposServidor{padding:0 0 0 44px}
 #camposLlave[hidden],#camposServidor[hidden]{display:none}
+
+/* --- barra superior: versión e instalar --- */
+.topbar{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:10px 0 0}
+.ver{
+  font-size:.82rem;font-weight:700;letter-spacing:.02em;color:var(--muted);
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.btn.mini{min-height:40px;padding:0 16px;font-size:.92rem}
+#ayudaInst{position:fixed;inset:0;z-index:30;background:rgba(8,16,32,.6);display:none;place-items:center;padding:16px}
+#ayudaInst.show{display:grid}
+#ayudaInst .caja{
+  background:var(--surface);border-radius:var(--radius-lg);padding:22px;max-width:460px;width:100%;
+  box-shadow:0 12px 40px rgba(0,0,0,.35);
+}
+#ayudaInst h3{margin:0 0 10px;font-size:1.1rem}
+#ayudaInst ol{margin:0 0 16px;padding-left:22px;line-height:1.7}
+#ayudaInst p{color:var(--muted);margin:0 0 16px}
 /* Barra inferior */
 .bar{
   position:fixed; left:0; right:0; bottom:0; z-index:5;
@@ -205,6 +223,10 @@ label.opcion small{display:block;color:var(--muted);font-weight:400;margin-top:2
 </head>
 <body>
 <div class="wrap">
+  <div class="topbar">
+    <button class="btn ghost mini" id="instalarBtn" type="button" hidden>Instalar app</button>
+    <span class="ver" id="verBadge" title="Versión de la app">V.1</span>
+  </div>
   <header>
     <h1>Inventario de panadería</h1>
     <p>Lee la foto de la hoja de inventario y arma el Excel del día, o pasa ese Excel a la columna IA de la tabla Toma_Inv.</p>
@@ -317,6 +339,14 @@ label.opcion small{display:block;color:var(--muted);font-weight:400;margin-top:2
     <label class="switch"><input type="checkbox" id="clearBlank" checked> Vaciar IA en claves sin dato en el inventario</label>
     <button class="btn ghost" id="shareBtn" type="button" hidden>Compartir</button>
     <button class="btn" id="saveBtn" type="button" disabled>Guardar archivo</button>
+  </div>
+</div>
+<div id="ayudaInst" role="dialog" aria-modal="true" aria-labelledby="ayudaInstTit">
+  <div class="caja">
+    <h3 id="ayudaInstTit">Instalar la app</h3>
+    <ol id="ayudaInstPasos"></ol>
+    <p>Queda con su propio ícono, abre a pantalla completa y funciona sin señal, salvo la lectura de fotos.</p>
+    <button class="btn" type="button" id="cerrarAyudaInst" style="width:100%">Entendido</button>
   </div>
 </div>
 <div id="fotoFull" role="dialog" aria-label="Foto del inventario" aria-modal="true"><button class="cerrar" type="button" id="cerrarFoto">Cerrar</button><div class="ayuda">Desliza para moverte; pellizca para acercar</div><img id="fotoFullImg" alt="Foto del inventario a tamaño completo"></div>
@@ -1544,6 +1574,73 @@ Incluye TODAS las claves de ambas listas, en el mismo orden, aunque su valor sea
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+})();
+</script>
+
+<script>
+/* Versión visible e instalación como app.
+   Al publicar una versión nueva: cambiar APP_VERSION aquí y el CACHE de sw.js. */
+(function(){
+  const APP_VERSION = 'V.1';
+  const badge = document.querySelector('#verBadge');
+  badge.textContent = APP_VERSION;
+
+  const btn = document.querySelector('#instalarBtn');
+  const ayuda = document.querySelector('#ayudaInst');
+  const pasos = document.querySelector('#ayudaInstPasos');
+  let evento = null;
+
+  const instalada = () =>
+    matchMedia('(display-mode: standalone)').matches ||
+    matchMedia('(display-mode: minimal-ui)').matches ||
+    navigator.standalone === true;
+
+  function refrescar(){ btn.hidden = instalada(); }
+
+  /* Chrome avisa cuando la app se puede instalar; guardamos el aviso
+     para dispararlo cuando la persona toque el botón. */
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); evento = e; refrescar();
+  });
+  window.addEventListener('appinstalled', () => {
+    evento = null; refrescar();
+    if (window.appSay) window.appSay('App instalada. Búscala en la pantalla de inicio.');
+  });
+  matchMedia('(display-mode: standalone)').addEventListener('change', refrescar);
+
+  function instrucciones(){
+    const ua = navigator.userAgent;
+    const iOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const android = /Android/.test(ua);
+    if (iOS) return ['Toca el botón Compartir, el cuadrito con la flecha hacia arriba.',
+                     'Desliza y elige "Añadir a pantalla de inicio".', 'Confirma con "Añadir".'];
+    if (android) return ['Abre el menú de los tres puntos, arriba a la derecha.',
+                         'Elige "Instalar aplicación" o "Agregar a pantalla de inicio".', 'Confirma con "Instalar".'];
+    return ['Busca el ícono de instalar en la barra de direcciones, a la derecha.',
+            'O abre el menú del navegador y elige "Instalar…".',
+            'Si no aparece, abre esta página en Chrome o Edge.'];
+  }
+
+  function verAyuda(on){
+    if (on) pasos.innerHTML = instrucciones().map((t) => '<li>' + t + '</li>').join('');
+    ayuda.classList.toggle('show', on);
+  }
+
+  btn.addEventListener('click', async () => {
+    if (!evento) { verAyuda(true); return; }
+    const guardado = evento; evento = null;
+    try {
+      guardado.prompt();
+      const r = await guardado.userChoice;
+      if (r && r.outcome === 'dismissed' && window.appSay) window.appSay('Instalación cancelada.');
+    } catch (_) { verAyuda(true); }
+    refrescar();
+  });
+  document.querySelector('#cerrarAyudaInst').addEventListener('click', () => verAyuda(false));
+  ayuda.addEventListener('click', (e) => { if (e.target.id === 'ayudaInst') verAyuda(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') verAyuda(false); });
+
+  refrescar();
 })();
 </script>
 
