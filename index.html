@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0053E2">
+<meta name="theme-color" content="#0A0E17">
 <title>Inventario a Cálculo de Producción</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -11,21 +11,28 @@
 <meta name="apple-mobile-web-app-title" content="Inventario IA">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥖</text></svg>">
 <style>
+/* Rinze Studio: tema oscuro, acentos verde neón y cian con degradado. */
 :root{
-  --bg:#EEF2F8; --surface:#FFFFFF; --ink:#10203F; --muted:#5A6780; --line:#D5DCE8;
-  --blue:#0053E2; --blue-ink:#FFFFFF; --blue-soft:#E3ECFD; --yellow:#FFC220; --yellow-soft:#FFF4D6;
-  --red:#B42318; --red-soft:#FDECEA; --green:#1E7A46; --green-soft:#E6F4EC;
+  --bg:#0A0E17;
+  --surface:#121824;
+  --surface-2:#1E293B;
+  --ink:#E6EDF7;
+  --muted:#8EA0BF;
+  --line:#1E293B;
+  --line-2:#2A3A55;
+  --accent:#00FF88;
+  --accent-2:#00D2FE;
+  --grad:linear-gradient(135deg,#00FF88 0%,#00D2FE 100%);
+  --on-accent:#04150F;
+  /* alias heredados, ahora en paleta Rinze */
+  --blue:#00FF88; --blue-ink:#04150F; --blue-soft:rgba(0,255,136,.10);
+  --yellow:#FFC857; --yellow-soft:rgba(255,200,87,.10);
+  --red:#FF5470;   --red-soft:rgba(255,84,112,.12);
+  --green:#00FF88; --green-soft:rgba(0,255,136,.12);
   --radius-lg:14px; --radius-sm:8px;
-  color-scheme:light;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#0E1626; --surface:#17223A; --ink:#E8EEF9; --muted:#9AA8C2; --line:#2A3858;
-    --blue:#4C8DFF; --blue-ink:#0E1626; --blue-soft:#1C2E55; --yellow:#FFC220; --yellow-soft:#3A3217;
-    --red:#FF8A7A; --red-soft:#3A1F22; --green:#6FD39A; --green-soft:#16362A;
-    color-scheme:dark;
-  }
-}
+::selection{background:rgba(0,210,254,.3)}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{
@@ -35,7 +42,7 @@ body{
   padding-bottom:calc(96px + env(safe-area-inset-bottom));
 }
 .wrap{max-width:1040px; margin:0 auto; padding:20px 16px}
-header h1{font-size:clamp(1.45rem,3.2vw,2rem); line-height:1.15; margin:8px 0 6px; letter-spacing:-.01em}
+header h1{font-size:clamp(1.45rem,3.2vw,2rem); line-height:1.15; margin:18px 0 6px; letter-spacing:-.01em}
 header p{margin:0; color:var(--muted); max-width:62ch}
 button,select,input{font:inherit; color:inherit}
 :focus-visible{outline:3px solid var(--blue); outline-offset:2px}
@@ -71,7 +78,7 @@ button,select,input{font:inherit; color:inherit}
   min-height:44px; padding:0 16px; border-radius:999px; border:1px solid var(--line);
   background:var(--surface); cursor:pointer;
 }
-.filters button[aria-pressed="true"]{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.filters button[aria-pressed="true"]{background:var(--grad); color:var(--on-accent); border-color:transparent; font-weight:700}
 .filters .count{opacity:.7; margin-left:4px; font-variant-numeric:tabular-nums}
 
 .notice{background:var(--yellow-soft); border-left:4px solid var(--yellow); border-radius:var(--radius-sm); padding:12px 14px; margin:0 0 12px}
@@ -153,7 +160,7 @@ tr.dud td.k{color:var(--red)}
 .ocrIn.bad{border-color:var(--red);box-shadow:inset 0 -3px 0 var(--red)}
 .outname{font-variant-numeric:tabular-nums;font-weight:600}
 
-#fotoFull{position:fixed;inset:0;z-index:30;background:rgba(8,16,32,.92);display:none;overflow:auto;-webkit-overflow-scrolling:touch}
+#fotoFull{position:fixed;inset:0;z-index:30;background:rgba(4,8,15,.96);display:none;overflow:auto;-webkit-overflow-scrolling:touch}
 #fotoFull.show{display:block}
 #fotoFull img{display:block;min-width:100%;width:auto;max-width:none}
 #fotoFull .cerrar{
@@ -182,7 +189,12 @@ label.opcion small{display:block;color:var(--muted);font-weight:400;margin-top:2
   font-variant-numeric:tabular-nums;white-space:nowrap;
 }
 .btn.mini{min-height:40px;padding:0 16px;font-size:.92rem}
-#ayudaInst{position:fixed;inset:0;z-index:30;background:rgba(8,16,32,.6);display:none;place-items:center;padding:16px}
+#confReset{position:fixed;inset:0;z-index:31;background:rgba(4,8,15,.72);backdrop-filter:blur(2px);display:none;place-items:center;padding:16px}
+#confReset.show{display:grid}
+#confReset .caja{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--radius-lg);padding:22px;max-width:420px;width:100%}
+#confReset h3{margin:0 0 10px;font-size:1.1rem}
+#confReset p{color:var(--muted);margin:0 0 18px}
+#ayudaInst{position:fixed;inset:0;z-index:30;background:rgba(4,8,15,.72);backdrop-filter:blur(2px);display:none;place-items:center;padding:16px}
 #ayudaInst.show{display:grid}
 #ayudaInst .caja{
   background:var(--surface);border-radius:var(--radius-lg);padding:22px;max-width:460px;width:100%;
@@ -211,21 +223,117 @@ label.opcion small{display:block;color:var(--muted);font-weight:400;margin-top:2
 #status{
   position:fixed; left:50%; transform:translateX(-50%); bottom:calc(100px + env(safe-area-inset-bottom));
   max-width:min(92vw,560px); padding:12px 16px; border-radius:var(--radius-sm);
-  background:var(--ink); color:var(--bg); z-index:10; display:none;
+  background:var(--surface-2); color:var(--ink); border:1px solid var(--line-2); z-index:10; display:none;
 }
 #status.show{display:block}
-#status.err{background:var(--red); color:#fff}
-#busy{position:fixed; inset:0; background:rgba(8,16,32,.45); display:none; place-items:center; z-index:20}
+#status.err{background:#2A1420; color:var(--red); border-color:rgba(255,84,112,.45)}
+#busy{position:fixed; inset:0; background:rgba(4,8,15,.72); backdrop-filter:blur(2px); display:none; place-items:center; z-index:20}
 #busy.show{display:grid}
-#busy div{background:var(--surface); padding:20px 24px; border-radius:var(--radius-lg); font-weight:600}
+#busy div{background:var(--surface); border:1px solid var(--line-2); padding:20px 24px; border-radius:var(--radius-lg); font-weight:600; color:var(--accent)}
 @media (prefers-reduced-motion:no-preference){ .ia.changed{transition:box-shadow .2s} }
+
+/* ===== Rinze Studio: componentes ===== */
+body{background:
+  radial-gradient(1100px 520px at 12% -8%, rgba(0,255,136,.07), transparent 60%),
+  radial-gradient(900px 480px at 92% 4%, rgba(0,210,254,.07), transparent 62%),
+  var(--bg);
+  background-attachment:fixed;
+}
+
+/* marca */
+.marca{display:flex;align-items:center;gap:10px;margin-right:auto}
+.marca svg{width:30px;height:30px;flex:none}
+.marca .wm{display:flex;flex-direction:column;line-height:1}
+.marca .wm b{font-size:1rem;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.marca .wm span{font-size:.62rem;letter-spacing:.22em;color:var(--muted);margin-top:3px}
+
+/* botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;letter-spacing:.01em;transition:filter .15s,border-color .15s,background .15s}
+.btn:not(.ghost){background:var(--grad);color:var(--on-accent);box-shadow:0 2px 16px rgba(0,255,136,.16)}
+.btn:not(.ghost):hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid rgba(0,255,136,.32);box-shadow:none}
+.btn.ghost:hover{border-color:var(--accent);background:rgba(0,255,136,.07)}
+.btn:disabled{opacity:.32;box-shadow:none;filter:none}
+.btn svg{width:20px;height:20px;flex:none}
+
+/* versión */
+.ver{color:var(--accent);border-color:rgba(0,255,136,.3);background:rgba(0,255,136,.07)}
+
+/* pestañas */
+.tabs{border-bottom-color:var(--line)}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs button:hover{color:var(--ink)}
+
+/* tarjetas y campos */
+.slot{background:var(--surface);border-color:var(--line-2)}
+.slot:hover,.slot.drag{border-color:var(--accent);background:rgba(0,255,136,.04)}
+.slot.loaded .n{background:var(--grad);color:var(--on-accent)}
+.slot .n{background:rgba(0,210,254,.12);color:var(--accent-2)}
+details.cfg,.tablebox,#fotoPrev,.bar,#busy div,#ayudaInst .caja{background:var(--surface);border-color:var(--line-2)}
+.bar{border-top:1px solid var(--line-2);box-shadow:0 -8px 24px rgba(4,8,15,.5)}
+.field input,.ocrIn,.ia,select.pick{background:#0D1320;border-color:var(--line-2);color:var(--ink)}
+.field input:focus,.ocrIn:focus,.ia:focus{border-color:var(--accent-2);outline:none;box-shadow:0 0 0 3px rgba(0,210,254,.18)}
+label.opcion{border-color:var(--line-2)}
+label.opcion:has(input:checked){border-color:var(--accent);background:rgba(0,255,136,.07)}
+th{background:var(--surface);border-bottom-color:var(--line-2);letter-spacing:.06em;text-transform:none}
+td{border-bottom-color:var(--line)}
+.half h3{color:var(--ink)}
+.ia.changed{border-color:var(--yellow);box-shadow:inset 0 -3px 0 var(--yellow)}
+.notice{background:rgba(255,200,87,.07);border-left-color:var(--yellow)}
+.notice.err{background:rgba(255,84,112,.08);border-left-color:var(--red)}
+.tag{background:var(--surface-2);color:var(--muted)}
+.tag.ok{background:var(--green-soft);color:var(--accent)}
+.tag.chg{background:var(--yellow-soft);color:var(--yellow)}
+.tag.bad{background:var(--red-soft);color:var(--red)}
+.pill{background:var(--red-soft);color:var(--red)}
+.stat b{color:var(--accent)}
+#fotoFull .cerrar{background:var(--grad);color:var(--on-accent)}
+#fotoFull .ayuda{background:var(--surface-2);color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+
+/* ===== Rinze: pantallas angostas ===== */
+.btn{white-space:nowrap}
+.corto{display:none}
+.topbar{flex-wrap:wrap;row-gap:8px}
+@media (max-width:760px){
+  .topbar .btn.mini .lbl{display:none}
+  .topbar .btn.mini{padding:0 14px}
+  .largo{display:none}
+  .corto{display:inline}
+}
+@media (max-width:640px){
+  .bar .in{gap:8px}
+  .bar .btn.ghost{flex:1 1 0;min-width:0;padding:0 10px;font-size:.9rem}
+  .bar .btn:not(.ghost){flex:1 1 100%;order:9}
+  #pasarBtn{margin-right:0 !important}
+  .marca .wm b{font-size:.92rem}
+}
+
+@media (max-width:640px){
+  .bar .btn.ghost svg{display:none}          /* el texto manda cuando hay poco ancho */
+  body{padding-bottom:calc(152px + env(safe-area-inset-bottom))}
+  #status{bottom:calc(164px + env(safe-area-inset-bottom))}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topbar">
-    <button class="btn ghost mini" id="instalarBtn" type="button" hidden>Instalar app</button>
-    <span class="ver" id="verBadge" title="Versión de la app">V.1</span>
+    <div class="marca"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <defs><linearGradient id="rg" x1="0" y1="0" x2="32" y2="32">
+        <stop offset="0" stop-color="#00FF88"/><stop offset="1" stop-color="#00D2FE"/>
+      </linearGradient></defs>
+      <path d="M9 26V6h9a6 6 0 0 1 0 12H9m8 0 7 8" stroke="url(#rg)" stroke-width="2.4"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="9" cy="6" r="2.8" fill="url(#rg)"/>
+      <circle cx="24" cy="26" r="2.8" fill="url(#rg)"/>
+      <circle cx="9" cy="18" r="2.2" fill="#0A0E17" stroke="url(#rg)" stroke-width="2"/>
+    </svg>
+      <span class="wm"><b>Rinze</b><span>STUDIO</span></span>
+    </div>
+    <button class="btn ghost mini" id="resetBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg><span class="lbl">Empezar de nuevo</span></button>
+    <button class="btn ghost mini" id="instalarBtn" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span class="lbl">Instalar app</span></button>
+    <span class="ver" id="verBadge" title="Versión de la app">V.2</span>
   </div>
   <header>
     <h1>Inventario de panadería</h1>
@@ -274,8 +382,8 @@ label.opcion small{display:block;color:var(--muted);font-weight:400;margin-top:2
         <span><strong>Foto de la hoja</strong><span class="d">Toca para elegir una imagen. En laptop también puedes arrastrarla aquí.</span></span>
       </button>
       <div style="display:flex;gap:10px;align-items:stretch">
-        <button class="btn ghost" id="camBtn" type="button" style="flex:1">Tomar foto</button>
-        <button class="btn ghost" id="galBtn" type="button" style="flex:1">Elegir imagen</button>
+        <button class="btn ghost" id="camBtn" type="button" style="flex:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8a2 2 0 0 1 2-2h2.2l1.3-2h6.9l1.3 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.5"/></svg>Tomar foto</button>
+        <button class="btn ghost" id="galBtn" type="button" style="flex:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="m4 17 5-4.5 4.5 4L17 13l3 3"/></svg>Elegir imagen</button>
       </div>
     </div>
     <input type="file" id="camIn" accept="image/*" capture="environment" hidden>
@@ -327,18 +435,28 @@ label.opcion small{display:block;color:var(--muted);font-weight:400;margin-top:2
 
 <div class="bar" id="barFoto" hidden>
   <div class="in">
-    <button class="btn ghost" id="pasarBtn" type="button" hidden style="margin-right:auto">Usar en el otro paso</button>
-    <button class="btn ghost" id="verFoto" type="button" hidden>Ver foto</button>
-    <button class="btn ghost" id="leerBtn" type="button" disabled>Leer la foto</button>
-    <button class="btn" id="guardarOcr" type="button" disabled>Guardar Excel</button>
+    <button class="btn ghost" id="pasarBtn" type="button" hidden style="margin-right:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13m0 0-5-5m5 5-5 5"/></svg><span class="largo">Usar en el otro paso</span><span class="corto">Al paso 2</span></button>
+    <button class="btn ghost" id="verFoto" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Ver foto</button>
+    <button class="btn ghost" id="leerBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10"/></svg>Leer la foto</button>
+    <button class="btn" id="guardarOcr" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Guardar Excel</button>
   </div>
 </div>
 
 <div class="bar" id="barExcel">
   <div class="in">
     <label class="switch"><input type="checkbox" id="clearBlank" checked> Vaciar IA en claves sin dato en el inventario</label>
-    <button class="btn ghost" id="shareBtn" type="button" hidden>Compartir</button>
-    <button class="btn" id="saveBtn" type="button" disabled>Guardar archivo</button>
+    <button class="btn ghost" id="shareBtn" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.6 6.8-4.2M8.6 13.4l6.8 4.2"/></svg>Compartir</button>
+    <button class="btn" id="saveBtn" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Guardar archivo</button>
+  </div>
+</div>
+<div id="confReset" role="dialog" aria-modal="true" aria-labelledby="confResetTit">
+  <div class="caja">
+    <h3 id="confResetTit">¿Empezar de nuevo?</h3>
+    <p>Se descartan la foto y los archivos cargados. Los ajustes del lector se conservan.</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn ghost" type="button" id="cancelReset" style="flex:1">Cancelar</button>
+      <button class="btn" type="button" id="okReset" style="flex:1">Empezar de nuevo</button>
+    </div>
   </div>
 </div>
 <div id="ayudaInst" role="dialog" aria-modal="true" aria-labelledby="ayudaInstTit">
@@ -1581,7 +1699,7 @@ Incluye TODAS las claves de ambas listas, en el mismo orden, aunque su valor sea
 /* Versión visible e instalación como app.
    Al publicar una versión nueva: cambiar APP_VERSION aquí y el CACHE de sw.js. */
 (function(){
-  const APP_VERSION = 'V.1';
+  const APP_VERSION = 'V.2';
   const badge = document.querySelector('#verBadge');
   badge.textContent = APP_VERSION;
 
@@ -1641,6 +1759,16 @@ Incluye TODAS las claves de ambas listas, en el mismo orden, aunque su valor sea
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') verAyuda(false); });
 
   refrescar();
+
+  /* Empezar de nuevo: recarga la app. Los ajustes del lector viven en
+     localStorage, así que sobreviven; lo cargado en memoria se descarta. */
+  const conf = document.querySelector('#confReset');
+  const verConf = (on) => conf.classList.toggle('show', on);
+  document.querySelector('#resetBtn').addEventListener('click', () => verConf(true));
+  document.querySelector('#cancelReset').addEventListener('click', () => verConf(false));
+  document.querySelector('#okReset').addEventListener('click', () => { verConf(false); location.reload(); });
+  conf.addEventListener('click', (e) => { if (e.target.id === 'confReset') verConf(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') verConf(false); });
 })();
 </script>
 

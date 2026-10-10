@@ -1,7 +1,7 @@
 /* Service worker: guarda la app para que funcione sin internet.
    Sube el número de CACHE cada vez que cambies index.html. */
-const CACHE = 'inventario-ia-V.1';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'inventario-ia-V.2';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));

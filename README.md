@@ -56,13 +56,24 @@ La app trae un botón **Instalar app** arriba a la derecha. Si el navegador lo p
 instalador del sistema; si no, muestra los pasos para ese dispositivo. El botón desaparece solo
 cuando la app ya está instalada.
 
+## Estilo
+
+La app usa el estilo Rinze Studio: tema oscuro sobre `#0A0E17`, superficies `#121824` y
+`#1E293B`, acentos verde neón `#00FF88` y cian `#00D2FE` con degradado, íconos delineados de
+24 px con trazo de 2 px, y el logo de nodos con el wordmark "Rinze STUDIO".
+
+## Empezar de nuevo
+
+El botón de arriba descarta la foto y los archivos cargados y deja la app limpia. Los ajustes
+del lector (modo, llave o dirección) se conservan.
+
 ## Versión
 
-Arriba a la derecha se ve la versión actual (`V.1`). Al publicar un cambio hay que subirla en
+Arriba a la derecha se ve la versión actual (`V.2`). Al publicar un cambio hay que subirla en
 **dos lugares**, que deben coincidir:
 
-1. `index.html` → `const APP_VERSION = 'V.1';`
-2. `sw.js` → `const CACHE = 'inventario-ia-V.1';`
+1. `index.html` → `const APP_VERSION = 'V.2';`
+2. `sw.js` → `const CACHE = 'inventario-ia-V.2';`
 
 El número de `sw.js` es el que obliga a los dispositivos ya instalados a tomar la versión nueva.
 Si no cambia, la tablet sigue abriendo la copia guardada aunque el archivo nuevo esté publicado.
@@ -76,7 +87,7 @@ está corriendo cada equipo.
 | `index.html` | La app completa, con JSZip incluido |
 | `manifest.webmanifest` | Nombre, colores e íconos para instalarla |
 | `sw.js` | Guarda la app para uso sin señal |
-| `icon-192.png`, `icon-512.png` | Íconos de la app |
+| `icon-192.png`, `icon-512.png`, `icon-maskable.png` | Íconos de la app (logo Rinze) |
 | `ocr.js` | Fuente de la sección de foto (va embebida en `index.html`) |
 | `api/extract.js` | El lector, para desplegar en Vercel sin terminal |
 | `vercel.json` | Ajustes del despliegue en Vercel |
